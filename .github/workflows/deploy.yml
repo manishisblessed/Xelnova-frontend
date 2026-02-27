@@ -1,0 +1,96 @@
+name: Deploy xelnova
+
+on:
+  push:
+    branches: [ main, staging ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Build frontend
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      ##################################################
+      # STAGING → AWS
+      ##################################################
+
+      - name: Start SSH (AWS)
+        if: github.ref == 'refs/heads/staging'
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+
+      - name: Deploy to AWS (staging)
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          ssh-keyscan -H ${{ secrets.AWS_DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+          REMOTE_BASE="/var/www/staging/xelnova"
+
+          ssh ${{ secrets.AWS_DEPLOY_USER }}@${{ secrets.AWS_DEPLOY_HOST }} "
+            set -e
+            cd $REMOTE_BASE
+            git fetch origin --prune
+            git reset --hard origin/staging
+            composer install --optimize-autoloader --no-dev --no-interaction --prefer-dist
+            php artisan migrate --force
+            php artisan optimize:clear || true
+            php artisan queue:restart || true
+            sudo chmod -R 775 storage bootstrap/cache
+            sudo systemctl reload php8.3-fpm
+          "
+
+          rsync -avz --delete public/build/ \
+            ${{ secrets.AWS_DEPLOY_USER }}@${{ secrets.AWS_DEPLOY_HOST }}:$REMOTE_BASE/public/build/
+
+      ##################################################
+      # MAIN → XEON
+      ##################################################
+
+      - name: Start SSH (Xeon)
+        if: github.ref == 'refs/heads/main'
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Xeon (main)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+          REMOTE_BASE="/var/www/xelnova"
+
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
+            set -e
+            cd $REMOTE_BASE
+            git fetch origin --prune
+            git reset --hard origin/main
+            composer install --optimize-autoloader --no-dev --no-interaction --prefer-dist
+            php artisan migrate --force
+            php artisan optimize:clear || true
+            php artisan queue:restart || true
+          "
+
+          rsync -avz --delete public/build/ \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:$REMOTE_BASE/public/build/

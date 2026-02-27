@@ -1,0 +1,133 @@
+/**
+ * Frontend Styles
+ * Used for Marketplace (storefront) and Seller Portal
+ * Blade + Alpine.js pages
+ */
+
+@import "tailwindcss";
+
+@plugin "@tailwindcss/forms";
+
+/* Hide Alpine.js elements until loaded */
+[x-cloak] { display: none !important; }
+
+/* Custom scrollbars for frontend */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+}
+
+@layer base {
+    button {
+        @apply cursor-pointer;
+    }
+}
+
+/* Xelnova Brand Colors */
+@theme {
+    --color-xelnova-green-50: #f0fdf4;
+    --color-xelnova-green-100: #dcfce7;
+    --color-xelnova-green-200: #bbf7d0;
+    --color-xelnova-green-300: #86efac;
+    --color-xelnova-green-400: #4ade80;
+    --color-xelnova-green-500: #22c55e;
+    --color-xelnova-green-600: #16a34a;
+    --color-xelnova-green-700: #15803d;
+    --color-xelnova-green-800: #166534;
+    --color-xelnova-green-900: #14532d;
+
+    --color-xelnova-gold-50: #fffbeb;
+    --color-xelnova-gold-100: #fef3c7;
+    --color-xelnova-gold-200: #fde68a;
+    --color-xelnova-gold-300: #fcd34d;
+    --color-xelnova-gold-400: #fbbf24;
+    --color-xelnova-gold-500: #f59e0b;
+    --color-xelnova-gold-600: #d97706;
+    --color-xelnova-gold-700: #b45309;
+    --color-xelnova-gold-800: #92400e;
+    --color-xelnova-gold-900: #78350f;
+}
+
+/* 3-Level Dropdown Navigation Styles */
+.border-l-3 {
+    border-left-width: 3px;
+}
+
+/* Smooth transitions for dropdown items */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* CMS page content (Quill HTML output) */
+.cms-content {
+    @apply text-sm text-gray-700 leading-7;
+}
+
+.cms-content h1 {
+    @apply text-3xl font-bold text-gray-900 mt-8 mb-4;
+}
+
+.cms-content h2 {
+    @apply text-2xl font-semibold text-gray-900 mt-7 mb-3;
+}
+
+.cms-content h3 {
+    @apply text-xl font-semibold text-gray-900 mt-6 mb-3;
+}
+
+.cms-content p {
+    @apply mb-4;
+}
+
+.cms-content ul {
+    @apply list-disc pl-6 mb-4;
+}
+
+.cms-content ol {
+    @apply list-decimal pl-6 mb-4;
+}
+
+.cms-content li {
+    @apply mb-1;
+}
+
+.cms-content a {
+    @apply text-xelnova-green-700 underline;
+}
+
+.cms-content blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4;
+}
+
+.cms-content strong {
+    @apply font-semibold;
+}
+
+/* Frontend Print Styles */
+@media print {
+    header,
+    footer,
+    .no-print {
+        display: none !important;
+    }
+}
